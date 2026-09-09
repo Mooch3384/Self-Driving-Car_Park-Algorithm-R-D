@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیل الگوریتم پارک خودکار</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #fff;
+            padding: 40px;
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1a5f7a;
+            font-size: 28px;
+            margin-bottom: 10px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #1a5f7a;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-right: 5px solid #1a5f7a;
+        }
+        
+        h3 {
+            color: #34495e;
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .specs-table th, .specs-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .specs-table th {
+            background: #1a5f7a;
+            color: white;
+        }
+        
+        .specs-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .box {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .box-red {
+            background: #fdeaea;
+            border-right: 4px solid #e74c3c;
+        }
+        
+        .box-green {
+            background: #e8f8e8;
+            border-right: 4px solid #27ae60;
+        }
+        
+        .box-blue {
+            background: #e8f0f8;
+            border-right: 4px solid #3498db;
+        }
+        
+        .box-yellow {
+            background: #fef9e7;
+            border-right: 4px solid #f39c12;
+        }
+        
+        .diagram {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .robot-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .obstacle {
+            width: 60px;
+            height: 80px;
+            background: #95a5a6;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .space {
+            width: 100px;
+            height: 80px;
+            border: 2px dashed #27ae60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #27ae60;
+        }
+        
+        .robot {
+            width: 70px;
+            height: 50px;
+            background: #3498db;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            position: relative;
+        }
+        
+        .robot::before {
+            content: "→";
+            position: absolute;
+            left: -25px;
+            font-size: 20px;
+            color: #3498db;
+        }
+        
+        .sensor {
+            width: 15px;
+            height: 15px;
+            background: #e74c3c;
+            position: absolute;
+            top: 50%;
+            right: -8px;
+            transform: translateY(-50%);
+            border-radius: 3px;
+        }
+        
+        ul, ol {
+            margin: 10px 20px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        .phase-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .phase-box {
+            background: #3498db;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .arrow-right {
+            font-size: 30px;
+            color: #3498db;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scenario {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .scenario-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .scenario-good {
+            background: #e8f8e8;
+            border: 2px solid #27ae60;
+        }
+        
+        .scenario-bad {
+            background: #fdeaea;
+            border: 2px solid #e74c3c;
+        }
+        
+        .param-value {
+            color: #1a5f7a;
+            font-weight: bold;
+        }
+        
+        .formula {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 18px;
+        }
+        
+        .steps {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            gap: 15px;
+        }
+        
+        .step-num {
+            width: 35px;
+            height: 35px;
+            background: #1a5f7a;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .toc h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #1a5f7a;
+            padding-bottom: 10px;
+        }
+        
+        .toc ul {
+            list-style: none;
+        }
+        
+        .toc li {
+            padding: 5px 0;
+        }
+        
+        .checkmark {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .crossmark {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        @media print {
+            body {
+                padding: 20px;
+            }
+            
+            h2 {
+                page-break-before: auto;
+            }
+            
+            .diagram, .box, table {
+                page-break-inside: avoid;
+            }
+        }
+        
+        .parking-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+        }
+        
+        .road {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            margin: 10px 0;
+        }
+        
+        .parking-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .distance-label {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚗 تحلیل عمیق الگوریتم پارک خودکار</h1>
+    <p class="subtitle">ربات خودران با سنسور اولتراسونیک</p>
+
+    <!-- فهرست مطالب -->
+    <div class="toc">
+        <h3>📑 فهرست مطالب</h3>
+        <ul>
+            <li>1. مشخصات ربات</li>
+            <li>2. تقسیم‌بندی مراحل الگوریتم</li>
+            <li>3. فاز 1: اسکن و کشف</li>
+            <li>4. فاز 2: موقعیت‌گیری</li>
+            <li>5. فاز 3: مانور پارک</li>
+            <li>6. جدول پارامترها</li>
+        </ul>
+    </div>
+
+    <!-- بخش 1: مشخصات ربات -->
+    <h2>1. مشخصات ربات</h2>
+    
+    <table class="specs-table">
+        <tr>
+            <th>پارامتر</th>
+            <th>مقدار</th>
+            <th>واحد</th>
+        </tr>
+        <tr>
+            <td>سخت‌افزار</td>
+            <td>Jetson Orin + ESP32</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>طول ربات</td>
+            <td>20</td>
+            <td>سانتی‌متر</td>
+        </tr>
+        <tr>
+            <td>قطر چرخ</td>
+            <td>7</td>
+            <td>سانتی‌متر</td>
+        </tr>
+        <tr>
+            <td>فاصله بین چرخ‌ها</td>
+            <td>18</td>
+            <td>سانتی‌متر</td>
+        </tr>
+        <tr>
+            <td>زاویه فرمان</td>
+            <td>±45</td>
+            <td>درجه</td>
+        </tr>
+        <tr>
+            <td>انکودر</td>
+            <td>16</td>
+            <td>پالس</td>
+        </tr>
+    </table>
+
+    <div class="box box-blue">
+        <strong>📍 موقعیت سنسور اولتراسونیک:</strong><br>
+        سنسور در لبه سمت راست ربات قرار دارد و رو به بیرون (سمت راست) است.
+        این موقعیت برای اسکن موانع کناری در حین حرکت رو به جلو بهینه است.
+    </div>
+
+    <!-- بخش 2: تقسیم‌بندی -->
+    <h2>2. تقسیم‌بندی مراحل الگوریتم</h2>
+    
+    <div class="phase-container">
+        <div class="phase-box">
+            <strong>فاز 1</strong><br>
+            اسکن و کشف
+        </div>
+        <div class="arrow-right">←</div>
+        <div class="phase-box">
+            <strong>فاز 2</strong><br>
+            موقعیت‌گیری
+        </div>
+        <div class="arrow-right">←</div>
+        <div class="phase-box">
+            <strong>فاز 3</strong><br>
+            مانور پارک
+        </div>
+    </div>
+
+    <table class="specs-table">
+        <tr>
+            <th>فاز</th>
+            <th>وظایف</th>
+        </tr>
+        <tr>
+            <td>فاز 1: اسکن و کشف</td>
+            <td>تشخیص AprilTag • پیدا کردن مانع اول • اندازه‌گیری فضای پارک • پیدا کردن مانع دوم</td>
+        </tr>
+        <tr>
+            <td>فاز 2: موقعیت‌گیری</td>
+            <td>تنظیم موقعیت طولی و عرضی • تصحیح زاویه • تأیید آمادگی برای پارک</td>
+        </tr>
+        <tr>
+            <td>فاز 3: مانور پارک</td>
+            <td>عقب رفتن با زاویه • صاف کردن ربات • تکمیل پارک</td>
+        </tr>
+    </table>
+
+    <!-- بخش 3: فاز 1 -->
+    <h2>3. فاز 1: اسکن و کشف</h2>
+
+    <h3>3.1 حالت: مانع اول وجود ندارد</h3>
+    
+    <div class="scenario">
+        <div class="scenario-box scenario-good">
+            <strong>حالت مورد انتظار</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">مانع 1</div>
+                    <div class="space">فضای خالی</div>
+                    <div class="obstacle">مانع 2</div>
+                </div>
+                <div class="road"></div>
+                <div class="robot">ربات<div class="sensor"></div></div>
+            </div>
+        </div>
+        <div class="scenario-box scenario-bad">
+            <strong>حالت واقعی (بدون مانع 1)</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="space" style="width: 160px;">فضای خالی بزرگ</div>
+                    <div class="obstacle">مانع 2</div>
+                </div>
+                <div class="road"></div>
+                <div class="robot">ربات<div class="sensor"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="box box-red">
+        <strong>⚠️ مشکل:</strong><br>
+        ربات منتظر "افزایش فاصله" است ولی از ابتدا فاصله زیاد است.
+    </div>
+
+    <div class="box box-green">
+        <strong>✅ راه‌حل:</strong>
+        <ul>
+            <li>اگر فاصله اولیه <strong>کمتر از 10cm</strong> → حالت عادی (منتظر افزایش فاصله)</li>
+            <li>اگر فاصله اولیه <strong>بیشتر از 10cm</strong> → فرض: از ابتدا در فضای خالی هستیم، فقط منتظر مانع دوم</li>
+        </ul>
+    </div>
+
+    <h3>3.2 حالت: مانع دوم وجود ندارد</h3>
+
+    <div class="diagram">
+        <div class="parking-visual">
+            <div class="parking-row">
+                <div class="obstacle">مانع 1</div>
+                <div class="space" style="width: 200px;">فضای نامحدود ← ← ←</div>
+                <div style="color: #e74c3c; font-size: 24px;">❓</div>
+            </div>
+            <div class="road"></div>
+            <div class="robot">ربات<div class="sensor"></div></div>
+        </div>
+    </div>
+
+    <div class="box box-red">
+        <strong>⚠️ مشکل:</strong><br>
+        ربات تا بی‌نهایت جلو می‌رود!
+    </div>
+
+    <div class="box box-green">
+        <strong>✅ راه‌حل:</strong> تعریف محدودیت‌های زمانی و مسافتی
+        <ul>
+            <li>حداکثر فضای پارک منطقی: <span class="param-value">80 سانتی‌متر</span></li>
+            <li>حداکثر مسافت جستجو: <span class="param-value">100 سانتی‌متر</span></li>
+            <li>اگر از این مقادیر گذشت → توقف و گزارش خطا یا ادامه جستجو</li>
+        </ul>
+    </div>
+
+    <h3>3.3 حالت: فضای پارک ناکافی</h3>
+
+    <div class="scenario">
+        <div class="scenario-box scenario-good">
+            <strong>فضای کافی</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">1</div>
+                    <div class="space" style="border-color: #27ae60;">35cm</div>
+                    <div class="obstacle">2</div>
+                </div>
+            </div>
+            <p class="checkmark">✓ قابل پارک</p>
+        </div>
+        <div class="scenario-box scenario-bad">
+            <strong>فضای ناکافی</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">1</div>
+                    <div class="space" style="width: 50px; border-color: #e74c3c;">15cm</div>
+                    <div class="obstacle">2</div>
+                </div>
+            </div>
+            <p class="crossmark">✗ غیرقابل پارک</p>
+        </div>
+    </div>
+
+    <div class="formula">
+        <strong>حداقل فضا</strong> = طول ربات + حاشیه مانور = 20 + 10 = <span class="param-value">30 سانتی‌متر</span>
+    </div>
+
+    <table class="specs-table">
+        <tr>
+            <th>اندازه فضا</th>
+            <th>وضعیت</th>
+            <th>اقدام</th>
+        </tr>
+        <tr>
+            <td>کمتر از 30cm</td>
+            <td class="crossmark">نامناسب</td>
+            <td>رد کردن و ادامه جستجو</td>
+        </tr>
+        <tr>
+            <td>30 تا 35cm</td>
+            <td style="color: #f39c12;">⚠️ قابل قبول</td>
+            <td>پارک با دقت بیشتر</td>
+        </tr>
+        <tr>
+            <td>بیشتر از 35cm</td>
+            <td class="checkmark">ایده‌آل</td>
+            <td>پارک استاندارد</td>
+        </tr>
+    </table>
+
+    <h3>3.4 حالت: ربات موازی موانع نیست</h3>
+
+    <div class="scenario">
+        <div class="scenario-box scenario-good">
+            <strong>حالت ایده‌آل (موازی)</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">M</div>
+                    <div style="width: 50px; text-align: center;">
+                        <div>4cm</div>
+                        <div>4cm</div>
+                        <div>4cm</div>
+                    </div>
+                </div>
+                <div class="road"></div>
+                <div class="robot" style="transform: rotate(0deg);">ربات</div>
+            </div>
+            <p class="checkmark">فاصله ثابت ✓</p>
+        </div>
+        <div class="scenario-box scenario-bad">
+            <strong>حالت مشکل‌دار (زاویه‌دار)</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">M</div>
+                    <div style="width: 50px; text-align: center;">
+                        <div>3cm</div>
+                        <div>5cm</div>
+                        <div>7cm</div>
+                    </div>
+                </div>
+                <div class="road"></div>
+                <div class="robot" style="transform: rotate(-15deg);">ربات</div>
+            </div>
+            <p class="crossmark">فاصله متغیر ✗</p>
+        </div>
+    </div>
+
+    <div class="box box-blue">
+        <strong>🔍 روش تشخیص عدم توازی:</strong>
+        <ul>
+            <li>هر <span class="param-value">3 سانتی‌متر</span> یک نمونه از سنسور می‌گیریم</li>
+            <li><span class="param-value">4 نمونه</span> جمع‌آوری می‌کنیم</li>
+            <li>اگر تفاوت نمونه اول و آخر بیشتر از <span class="param-value">1.5cm</span> → ربات زاویه‌دار است</li>
+        </ul>
+        <strong>تفسیر نتایج:</strong>
+        <ul>
+            <li><strong>روند صعودی</strong> (3→4→5→6): ربات دارد از مانع دور می‌شود</li>
+            <li><strong>روند نزولی</strong> (6→5→4→3): ربات دارد به مانع نزدیک می‌شود</li>
+            <li><strong>ثابت</strong> (4→4→4→4): موازی است ✓</li>
+        </ul>
+    </div>
+
+    <h3>3.5 حالت: فاصله عرضی نامناسب</h3>
+
+    <div class="scenario">
+        <div class="scenario-box scenario-bad">
+            <strong>خیلی نزدیک</strong>
+            <p>فاصله: 1-2cm</p>
+            <p class="crossmark">خطر برخورد!</p>
+        </div>
+        <div class="scenario-box scenario-good">
+            <strong>ایده‌آل</strong>
+            <p>فاصله: 5-15cm</p>
+            <p class="checkmark">عملکرد عادی ✓</p>
+        </div>
+        <div class="scenario-box scenario-bad">
+            <strong>خیلی دور</strong>
+            <p>فاصله: >25cm</p>
+            <p class="crossmark">سنسور نمی‌بیند!</p>
+        </div>
+    </div>
+
+    <table class="specs-table">
+        <tr>
+            <th>فاصله</th>
+            <th>وضعیت</th>
+            <th>اقدام</th>
+        </tr>
+        <tr>
+            <td>0-2cm</td>
+            <td class="crossmark">خطر برخورد</td>
+            <td>توقف فوری + فاصله گرفتن</td>
+        </tr>
+        <tr>
+            <td>2-5cm</td>
+            <td style="color: #f39c12;">⚠️ نزدیک</td>
+            <td>ادامه با احتیاط</td>
+        </tr>
+        <tr>
+            <td>5-15cm</td>
+            <td class="checkmark">ایده‌آل</td>
+            <td>عملکرد عادی</td>
+        </tr>
+        <tr>
+            <td>15-25cm</td>
+            <td style="color: #f39c12;">⚠️ دور</td>
+            <td>ادامه با دقت کمتر</td>
+        </tr>
+        <tr>
+            <td>بیش از 25cm</td>
+            <td class="crossmark">خارج رنج</td>
+            <td>نیاز به نزدیک شدن</td>
+        </tr>
+    </table>
+
+    <!-- بخش 4: فاز 2 -->
+    <h2>4. فاز 2: موقعیت‌گیری</h2>
+
+    <h3>4.1 موقعیت ایده‌آل برای شروع پارک</h3>
+
+    <div class="diagram">
+        <div class="parking-visual">
+            <div class="parking-row">
+                <div class="obstacle">مانع 1</div>
+                <div class="space">فضای پارک</div>
+                <div class="obstacle">مانع 2</div>
+            </div>
+            <div style="margin: 10px 0;">
+                <span style="color: #e74c3c;">← d1: 5-8cm →</span>
+                &nbsp;&nbsp;&nbsp;
+                <span style="color: #3498db;">↑ d2: 10cm ↓</span>
+            </div>
+            <div class="road"></div>
+            <div class="robot">ربات<div class="sensor"></div></div>
+        </div>
+    </div>
+
+    <div class="box box-yellow">
+        <strong>📐 پارامترهای ایده‌آل:</strong>
+        <ul>
+            <li><strong>d1</strong> (فاصله عرضی از مانع): <span class="param-value">5-8 سانتی‌متر</span></li>
+            <li><strong>d2</strong> (فاصله طولی از مانع 2): <span class="param-value">10 سانتی‌متر</span> (نصف طول ربات)</li>
+            <li><strong>زاویه</strong>: <span class="param-value">0 درجه</span> (کاملاً موازی)</li>
+        </ul>
+    </div>
+
+    <h3>4.2 فاصله طولی نامناسب از مانع دوم</h3>
+
+    <div class="scenario">
+        <div class="scenario-box scenario-bad">
+            <strong>خیلی نزدیک به مانع 2</strong>
+            <p>فاصله: 3cm</p>
+            <p class="crossmark">فضای چرخش ناکافی!</p>
+            <p><strong>راه‌حل:</strong> کمی جلو برو</p>
+        </div>
+        <div class="scenario-box scenario-bad">
+            <strong>خیلی دور از مانع 2</strong>
+            <p>فاصله: 20cm</p>
+            <p class="crossmark">زاویه ورود نامناسب!</p>
+            <p><strong>راه‌حل:</strong> کمی عقب برو</p>
+        </div>
+    </div>
+
+    <h3>4.3 تشخیص و تصحیح زاویه</h3>
+
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <div>اندازه‌گیری فاصله d1 از سنسور</div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div>حرکت 5 سانتی‌متر به جلو</div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div>اندازه‌گیری فاصله d2 از سنسور</div>
+        </div>
+        <div class="step">
+            <div class="step-num">4</div>
+            <div>اگر |d2 - d1| > 1cm → نیاز به تصحیح زاویه</div>
+        </div>
+    </div>
+
+    <div class="formula">
+        زاویه ربات ≈ arctan( (d2 - d1) / 5cm )
+    </div>
+
+    <!-- بخش 5: فاز 3 -->
+    <h2>5. فاز 3: مانور پارک</h2>
+
+    <h3>5.1 مرحله اول: عقب رفتن با زاویه</h3>
+
+    <div class="scenario">
+        <div class="scenario-box" style="background: #e8f0f8; border: 2px solid #3498db;">
+            <strong>وضعیت شروع</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">1</div>
+                    <div class="space">فضا</div>
+                    <div class="obstacle">2</div>
+                </div>
+                <div class="road"></div>
+                <div class="robot">ربات</div>
+            </div>
+        </div>
+        <div style="font-size: 40px; color: #27ae60; display: flex; align-items: center;">→</div>
+        <div class="scenario-box" style="background: #e8f8e8; border: 2px solid #27ae60;">
+            <strong>پس از عقب رفتن</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">1</div>
+                    <div class="space">فضا</div>
+                    <div class="obstacle">2</div>
+                </div>
+                <div class="road"></div>
+                <div class="robot" style="transform: rotate(-35deg); margin-top: -20px;">ربات</div>
+            </div>
+            <p>زاویه: 45°</p>
+        </div>
+    </div>
+
+    <div class="box box-blue">
+        <strong>🔧 تنظیمات حرکت:</strong>
+        <ul>
+            <li><strong>فرمان:</strong> راست 45 درجه</li>
+            <li><strong>حرکت:</strong> دنده عقب</li>
+        </ul>
+        <strong>شرایط توقف (هر کدام زودتر رخ دهد):</strong>
+        <ul>
+            <li>حداکثر مسافت: <span class="param-value">35 سانتی‌متر</span></li>
+            <li>حداقل فاصله از مانع 1: <span class="param-value">5 سانتی‌متر</span></li>
+            <li>رسیدن به خط مرکزی فضای پارک</li>
+        </ul>
+    </div>
+
+    <h3>5.2 مرحله دوم: صاف کردن</h3>
+
+    <div class="scenario">
+        <div class="scenario-box" style="background: #fef9e7; border: 2px solid #f39c12;">
+            <strong>قبل از صاف کردن</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">1</div>
+                    <div class="space">فضا</div>
+                    <div class="obstacle">2</div>
+                </div>
+                <div class="robot" style="transform: rotate(-35deg);">ربات</div>
+            </div>
+        </div>
+        <div style="font-size: 40px; color: #27ae60; display: flex; align-items: center;">→</div>
+        <div class="scenario-box" style="background: #e8f8e8; border: 2px solid #27ae60;">
+            <strong>پس از صاف کردن</strong>
+            <div class="parking-visual">
+                <div class="parking-row">
+                    <div class="obstacle">1</div>
+                    <div class="space">فضا</div>
+                    <div class="obstacle">2</div>
+                </div>
+                <div class="robot">ربات</div>
+            </div>
+            <p class="checkmark">✓ پارک کامل</p>
+        </div>
+    </div>
+
+    <div class="box box-blue">
+        <strong>🔧 تنظیمات حرکت:</strong>
+        <ul>
+            <li><strong>فرمان:</strong> چپ 45 درجه</li>
+            <li><strong>حرکت:</strong> دنده عقب</li>
+            <li><strong>مسافت:</strong> حدود <span class="param-value">18 سانتی‌متر</span> (0.7 × مسافت مرحله اول)</li>
+        </ul>
+        <strong>شرط توقف:</strong>
+        <ul>
+            <li>فاصله سنسور ثابت بماند (واریانس < 0.5cm) = موازی شدیم</li>
+        </ul>
+    </div>
+
+    <h3>5.3 بررسی نهایی</h3>
+
+    <div class="box box-green">
+        <strong>✅ چک‌لیست پارک موفق:</strong>
+        <ul>
+            <li>☑️ فاصله از مانع 1 بیشتر از 3 سانتی‌متر</li>
+            <li>☑️ فاصله از مانع 2 بیشتر از 3 سانتی‌متر</li>
+            <li>☑️ موازی بودن با موانع (واریانس < 0.5cm)</li>
+            <li>☑️ قرار گرفتن در محدوده فضای پارک</li>
+        </ul>
+    </div>
+
+    <!-- بخش 6: جدول پارامترها -->
+    <h2>6. جدول پارامترهای قابل تنظیم</h2>
+
+    <table class="specs-table">
+        <tr>
+            <th>پارامتر</th>
+            <th>مقدار پیشنهادی</th>
+            <th>واحد</th>
+            <th>توضیحات</th>
+        </tr>
+        <tr>
+            <td>OBSTACLE_THRESHOLD</td>
+            <td>10</td>
+            <td>cm</td>
+            <td>آستانه تشخیص مانع</td>
+        </tr>
+        <tr>
+            <td>MIN_SAFE_DISTANCE</td>
+            <td>3</td>
+            <td>cm</td>
+            <td>حداقل فاصله امن از موانع</td>
+        </tr>
+        <tr>
+            <td>MAX_SENSOR_RANGE</td>
+            <td>25</td>
+            <td>cm</td>
+            <td>حداکثر برد سنسور</td>
+        </tr>
+        <tr>
+            <td>IDEAL_LATERAL_DISTANCE</td>
+            <td>7</td>
+            <td>cm</td>
+            <td>فاصله عرضی ایده‌آل</td>
+        </tr>
+        <tr>
+            <td>MIN_PARKING_SPACE</td>
+            <td>30</td>
+            <td>cm</td>
+            <td>حداقل فضای پارک</td>
+        </tr>
+        <tr>
+            <td>IDEAL_PARKING_SPACE</td>
+            <td>35</td>
+            <td>cm</td>
+            <td>فضای ایده‌آل پارک</td>
+        </tr>
+        <tr>
+            <td>DIST_FROM_OBSTACLE2</td>
+            <td>10</td>
+            <td>cm</td>
+            <td>فاصله از مانع 2 برای شروع</td>
+        </tr>
+        <tr>
+            <td>MAX_ALIGNMENT_ERROR</td>
+            <td>1</td>
+            <td>cm</td>
+            <td>حداکثر خطای توازی مجاز</td>
+        </tr>
+        <tr>
+            <td>STEERING_ANGLE</td>
+            <td>45</td>
+            <td>درجه</td>
+            <td>زاویه فرمان</td>
+        </tr>
+        <tr>
+            <td>BACKUP_DISTANCE_STEP1</td>
+            <td>25</td>
+            <td>cm</td>
+            <td>مسافت عقب رفتن مرحله 1</td>
+        </tr>
+        <tr>
+            <td>STRAIGHTEN_DISTANCE</td>
+            <td>18</td>
+            <td>cm</td>
+            <td>مسافت صاف کردن</td>
+        </tr>
+        <tr>
+            <td>MAX_PARKING_ATTEMPTS</td>
+            <td>3</td>
+            <td>تعداد</td>
+            <td>حداکثر تلاش برای پارک</td>
+        </tr>
+    </table>
+
+    <div class="box box-green" style="margin-top: 30px;">
+        <strong>📝 نتیجه‌گیری:</strong>
+        <p>این الگوریتم با در نظر گرفتن تمام حالات غیرایده‌آل طراحی شده است:</p>
+        <ul>
+            <li><strong>مدیریت خطا:</strong> برای هر مرحله، حالات خطا و راه‌حل آن‌ها تعریف شده</li>
+            <li><strong>انعطاف‌پذیری:</strong> پارامترها قابل تنظیم هستند</li>
+            <li><strong>قابلیت بازیابی:</strong> در صورت شکست، امکان تلاش مجدد وجود دارد</li>
+            <li><strong>ایمنی:</strong> فاصله‌های امن در تمام مراحل رعایت می‌شود</li>
+        </ul>
+    </div>
+
+</body>
+</html>

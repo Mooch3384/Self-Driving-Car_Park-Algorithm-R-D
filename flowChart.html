@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فلوچارت الگوریتم پارک خودکار</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Vazirmatn', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 30px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 40px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-shape {
+            width: 40px;
+            height: 25px;
+        }
+        
+        .legend-oval {
+            background: #1abc9c;
+            border-radius: 50%;
+            width: 40px;
+            height: 25px;
+        }
+        
+        .legend-rect {
+            background: #3498db;
+            border-radius: 5px;
+        }
+        
+        .legend-diamond {
+            background: #f39c12;
+            width: 25px;
+            height: 25px;
+            transform: rotate(45deg);
+        }
+        
+        .legend-rect-error {
+            background: #e74c3c;
+            border-radius: 5px;
+        }
+        
+        /* Flowchart */
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+        
+        /* Shapes */
+        .node {
+            position: relative;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1;
+        }
+        
+        .oval {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(26, 188, 156, 0.4);
+        }
+        
+        .rect {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .rect-green {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+        }
+        
+        .rect-purple {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        
+        .diamond {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            min-width: 180px;
+            transform: rotate(45deg);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+        
+        .diamond-content {
+            transform: rotate(-45deg);
+            white-space: nowrap;
+        }
+        
+        .rect-error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .rect-warning {
+            background: linear-gradient(135deg, #f39c12, #d68910);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+        
+        /* Arrows */
+        .arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .arrow-line {
+            width: 3px;
+            height: 30px;
+            background: #34495e;
+        }
+        
+        .arrow-head {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #34495e;
+        }
+        
+        .arrow-label {
+            font-size: 12px;
+            color: #27ae60;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .arrow-label-red {
+            color: #e74c3c;
+        }
+        
+        /* Decision branches */
+        .decision-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .branches {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 60px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .branch-line-horizontal {
+            position: absolute;
+            top: 0;
+            height: 3px;
+            background: #34495e;
+        }
+        
+        .branch-left .arrow-line,
+        .branch-right .arrow-line {
+            height: 20px;
+        }
+        
+        /* Horizontal flow for some sections */
+        .horizontal-flow {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .horizontal-arrow {
+            display: flex;
+            align-items: center;
+        }
+        
+        .horizontal-arrow-line {
+            width: 40px;
+            height: 3px;
+            background: #34495e;
+        }
+        
+        .horizontal-arrow-head {
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-right: 12px solid #34495e;
+        }
+        
+        /* Phase headers */
+        .phase-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 30px 0 20px 0;
+            box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
+        }
+        
+        /* Loop back arrows */
+        .loop-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .loop-back {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .loop-line-up {
+            width: 3px;
+            height: 50px;
+            background: #e74c3c;
+        }
+        
+        .loop-line-horizontal {
+            width: 100px;
+            height: 3px;
+            background: #e74c3c;
+        }
+        
+        .main-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* Side branch */
+        .side-branch-container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        .side-branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .connector-horizontal {
+            display: flex;
+            align-items: center;
+        }
+        
+        .connector-line {
+            width: 60px;
+            height: 3px;
+            background: #34495e;
+        }
+        
+        /* Section divider */
+        .section-divider {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #bdc3c7, transparent);
+            margin: 30px 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .branches {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .legend {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .node {
+                font-size: 12px;
+            }
+            
+            .rect {
+                min-width: 150px;
+                padding: 10px 15px;
+            }
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 10px;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+        }
+        
+        /* Animation for web view */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .node {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .tooltip::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 فلوچارت الگوریتم پارک خودکار</h1>
+        <p class="subtitle">ربات خودران با سنسور اولتراسونیک</p>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-shape legend-oval"></div>
+                <span>شروع / پایان</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-shape legend-rect"></div>
+                <span>عملیات</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-shape legend-diamond"></div>
+                <span>تصمیم‌گیری</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-shape legend-rect-error"></div>
+                <span>خطا / تصحیح</span>
+            </div>
+        </div>
+        
+        <!-- Flowchart -->
+        <div class="flowchart">
+            
+            <!-- START -->
+            <div class="node oval tooltip" data-tip="شروع الگوریتم پارک">
+                🚀 شروع
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- PHASE 1 -->
+            <div class="phase-header">📡 فاز 1: اسکن و کشف</div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 15px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Wait for AprilTag -->
+            <div class="node rect tooltip" data-tip="منتظر تشخیص تابلوی پارک">
+                📷 انتظار برای AprilTag
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-label">تگ تشخیص داده شد</div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Check Initial Distance -->
+            <div class="decision-container">
+                <div class="node diamond tooltip" data-tip="بررسی فاصله اولیه سنسور">
+                    <div class="diamond-content">فاصله اولیه؟</div>
+                </div>
+                
+                <div class="branches" style="margin-top: 30px;">
+                    <!-- Branch: Too Close -->
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">< 2cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-error">
+                            ⚠️ توقف فوری<br>فاصله بگیر
+                        </div>
+                    </div>
+                    
+                    <!-- Branch: Normal -->
+                    <div class="branch">
+                        <div class="arrow-label">2-25cm ✓</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-green">
+                            ✅ ادامه عادی
+                        </div>
+                    </div>
+                    
+                    <!-- Branch: Too Far -->
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">> 25cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-warning">
+                            ⚠️ نزدیک شو<br>به موانع
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 40px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Check Alignment -->
+            <div class="side-branch-container">
+                <div class="main-flow">
+                    <div class="node diamond tooltip" data-tip="آیا ربات موازی موانع است؟">
+                        <div class="diamond-content">بررسی توازی</div>
+                    </div>
+                    
+                    <div class="arrow">
+                        <div class="arrow-label">موازی ✓</div>
+                        <div class="arrow-line" style="height: 15px;"></div>
+                        <div class="arrow-head"></div>
+                    </div>
+                </div>
+                
+                <div class="side-branch" style="margin-top: 20px;">
+                    <div class="connector-horizontal">
+                        <div class="connector-line"></div>
+                    </div>
+                    <div class="arrow-label arrow-label-red" style="margin: 5px;">زاویه‌دار</div>
+                    <div class="node rect-error">
+                        🔄 تصحیح زاویه
+                    </div>
+                    <div style="font-size: 24px; color: #e74c3c; margin-top: 10px;">↩️</div>
+                    <div style="font-size: 11px; color: #e74c3c;">بازگشت</div>
+                </div>
+            </div>
+            
+            <!-- Scan for Obstacle 1 -->
+            <div class="node rect tooltip" data-tip="حرکت و اسکن برای پیدا کردن مانع اول">
+                🔍 اسکن برای مانع اول<br>
+                <small>(فاصله < 10cm)</small>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Found Obstacle 1? -->
+            <div class="decision-container">
+                <div class="node diamond tooltip" data-tip="آیا مانع اول پیدا شد؟">
+                    <div class="diamond-content">مانع 1 پیدا شد؟</div>
+                </div>
+                
+                <div class="branches" style="margin-top: 30px;">
+                    <div class="branch">
+                        <div class="arrow-label">بله</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect">
+                            ✅ ثبت موقعیت مانع 1
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">خیر</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-warning">
+                            فرض: شروع فضای خالی
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 40px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Find Space Start -->
+            <div class="node rect tooltip" data-tip="جستجو برای شروع فضای خالی پارک">
+                🔍 جستجوی شروع فضای خالی<br>
+                <small>(افزایش فاصله به > 15cm)</small>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-label">شروع فضا پیدا شد</div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Find Obstacle 2 -->
+            <div class="side-branch-container">
+                <div class="main-flow">
+                    <div class="node rect tooltip" data-tip="جستجو برای پایان فضای خالی">
+                        🔍 جستجوی مانع دوم<br>
+                        <small>(فاصله < 10cm)</small>
+                    </div>
+                    
+                    <div class="arrow">
+                        <div class="arrow-line"></div>
+                        <div class="arrow-head"></div>
+                    </div>
+                </div>
+                
+                <div class="side-branch" style="margin-top: 0;">
+                    <div class="connector-horizontal">
+                        <div class="connector-line"></div>
+                    </div>
+                    <div class="arrow-label arrow-label-red" style="margin: 5px;">Timeout<br>(> 80cm)</div>
+                    <div class="node rect-error">
+                        ❌ فضا نامناسب<br>ادامه جستجو
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Check Space Size -->
+            <div class="decision-container">
+                <div class="node diamond tooltip" data-tip="بررسی کافی بودن اندازه فضا">
+                    <div class="diamond-content">اندازه فضا؟</div>
+                </div>
+                
+                <div class="branches" style="margin-top: 30px;">
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">< 30cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-error">
+                            ❌ فضا کوچک<br>رد کردن، ادامه جستجو
+                        </div>
+                        <div style="font-size: 24px; color: #e74c3c; margin-top: 10px;">↩️</div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label">≥ 30cm ✓</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-green">
+                            ✅ فضا کافی
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-divider"></div>
+            
+            <!-- PHASE 2 -->
+            <div class="phase-header">📍 فاز 2: موقعیت‌گیری</div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 15px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Position Next to Obstacle 2 -->
+            <div class="node rect tooltip" data-tip="حرکت به موقعیت ایده‌آل کنار مانع دوم">
+                📍 موقعیت‌گیری کنار مانع 2<br>
+                <small>(فاصله = 10cm از مانع 2)</small>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Check Position -->
+            <div class="decision-container">
+                <div class="node diamond tooltip" data-tip="بررسی فاصله طولی از مانع 2">
+                    <div class="diamond-content">فاصله از مانع 2؟</div>
+                </div>
+                
+                <div class="branches" style="margin-top: 30px;">
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">< 8cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-warning">
+                            ▶️ کمی جلو برو
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label">8-12cm ✓</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-green">
+                            ✅ موقعیت OK
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">> 12cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-warning">
+                            ◀️ کمی عقب برو
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 40px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Check Lateral Distance -->
+            <div class="side-branch-container">
+                <div class="main-flow">
+                    <div class="node diamond tooltip" data-tip="بررسی فاصله عرضی از موانع">
+                        <div class="diamond-content">فاصله عرضی؟</div>
+                    </div>
+                    
+                    <div class="arrow">
+                        <div class="arrow-label">5-10cm ✓</div>
+                        <div class="arrow-line" style="height: 15px;"></div>
+                        <div class="arrow-head"></div>
+                    </div>
+                </div>
+                
+                <div class="side-branch" style="margin-top: 20px;">
+                    <div class="connector-horizontal">
+                        <div class="connector-line"></div>
+                    </div>
+                    <div class="arrow-label arrow-label-red" style="margin: 5px;">نامناسب</div>
+                    <div class="node rect-error">
+                        🔄 تصحیح فاصله عرضی
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ready for Parking -->
+            <div class="node rect-green tooltip" data-tip="تأیید آمادگی برای شروع مانور پارک">
+                ✅ تأیید آمادگی<br>برای پارک
+            </div>
+            
+            <div class="section-divider"></div>
+            
+            <!-- PHASE 3 -->
+            <div class="phase-header">🅿️ فاز 3: مانور پارک</div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 15px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Step 1: Reverse with Angle -->
+            <div class="node rect-purple tooltip" data-tip="عقب رفتن با فرمان راست 45 درجه">
+                🔄 مرحله 1: عقب + فرمان راست<br>
+                <small>(زاویه: 45° | حداکثر: 35cm)</small>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Check Step 1 Completion -->
+            <div class="decision-container">
+                <div class="node diamond tooltip" data-tip="شرایط توقف مرحله اول">
+                    <div class="diamond-content">شرط توقف؟</div>
+                </div>
+                
+                <div class="branches" style="margin-top: 30px;">
+                    <div class="branch">
+                        <div class="arrow-label">مسافت ≥ 35cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect">توقف</div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label">فاصله ≤ 5cm</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect">توقف</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 40px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Step 2: Straighten -->
+            <div class="node rect-purple tooltip" data-tip="صاف کردن با فرمان چپ 45 درجه">
+                🔄 مرحله 2: عقب + فرمان چپ<br>
+                <small>(زاویه: -45° | مسافت: ~18cm)</small>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Check Alignment -->
+            <div class="side-branch-container">
+                <div class="main-flow">
+                    <div class="node diamond tooltip" data-tip="آیا ربات موازی شده است؟">
+                        <div class="diamond-content">موازی شد؟</div>
+                    </div>
+                    
+                    <div class="arrow">
+                        <div class="arrow-label">بله ✓</div>
+                        <div class="arrow-line" style="height: 15px;"></div>
+                        <div class="arrow-head"></div>
+                    </div>
+                </div>
+                
+                <div class="side-branch" style="margin-top: 20px;">
+                    <div class="connector-horizontal">
+                        <div class="connector-line"></div>
+                    </div>
+                    <div class="arrow-label arrow-label-red" style="margin: 5px;">خیر</div>
+                    <div class="node rect-warning">
+                        🔄 مانور اصلاحی
+                    </div>
+                    <div style="font-size: 24px; color: #f39c12; margin-top: 10px;">↩️</div>
+                </div>
+            </div>
+            
+            <!-- Final Check -->
+            <div class="node rect tooltip" data-tip="بررسی نهایی موقعیت پارک">
+                🔍 بررسی نهایی
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Final Decision -->
+            <div class="decision-container">
+                <div class="node diamond tooltip" data-tip="آیا پارک موفق بوده؟">
+                    <div class="diamond-content">پارک موفق؟</div>
+                </div>
+                
+                <div class="branches" style="margin-top: 30px;">
+                    <div class="branch">
+                        <div class="arrow-label">بله ✓</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">خیر (تلاش < 3)</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-error">
+                            🔄 تلاش مجدد
+                        </div>
+                        <div style="font-size: 24px; color: #e74c3c; margin-top: 10px;">↩️</div>
+                        <div style="font-size: 11px; color: #e74c3c;">بازگشت به فاز 3</div>
+                    </div>
+                    
+                    <div class="branch">
+                        <div class="arrow-label arrow-label-red">خیر (تلاش = 3)</div>
+                        <div class="arrow">
+                            <div class="arrow-line" style="height: 15px;"></div>
+                            <div class="arrow-head"></div>
+                        </div>
+                        <div class="node rect-error">
+                            ❌ خطای پارک<br>گزارش به کاربر
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line" style="height: 40px;"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- Checklist -->
+            <div class="node rect" style="background: linear-gradient(135deg, #27ae60, #229954); min-width: 250px;">
+                ✅ چک‌لیست نهایی:<br>
+                <small>
+                    ☑️ فاصله از مانع 1 > 3cm<br>
+                    ☑️ فاصله از مانع 2 > 3cm<br>
+                    ☑️ موازی با موانع<br>
+                    ☑️ در محدوده فضای پارک
+                </small>
+            </div>
+            
+            <div class="arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head"></div>
+            </div>
+            
+            <!-- END -->
+            <div class="node oval" style="background: linear-gradient(135deg, #27ae60, #1e8449);">
+                🎉 پارک کامل شد
+            </div>
+            
+        </div>
+        
+        <!-- Summary Table -->
+        <div style="margin-top: 50px;">
+            <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">📊 خلاصه پارامترهای کلیدی</h2>
+            <table style="width: 100%; border-collapse: collapse; margin: 0 auto;">
+                <tr style="background: #3498db; color: white;">
+                    <th style="padding: 12px; border: 1px solid #ddd;">پارامتر</th>
+                    <th style="padding: 12px; border: 1px solid #ddd;">مقدار</th>
+                    <th style="padding: 12px; border: 1px solid #ddd;">توضیحات</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">آستانه مانع</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #3498db;">10 cm</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">فاصله‌ای که مانع تشخیص داده می‌شود</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">حداقل فضای پارک</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #e74c3c;">30 cm</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">طول ربات + حاشیه مانور</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">فاصله از مانع 2</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #27ae60;">10 cm</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">نصف طول ربات</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">زاویه فرمان</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #9b59b6;">±45°</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">حداکثر زاویه چرخش</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">مسافت عقب مرحله 1</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #3498db;">25-35 cm</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">بسته به اندازه فضا</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">مسافت صاف کردن</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #3498db;">~18 cm</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">0.7 × مسافت مرحله 1</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">حداکثر تلاش</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #e74c3c;">3</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">تعداد تلاش مجاز برای پارک</td>
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</body>
+</html>
